@@ -40,15 +40,19 @@ namespace Apollo
 
             cameraPosition = Vector2.Zero;
 
-            gameObjects.Add(new Player(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 2 - 30, 0), new Vector2(60, 60), 0), RenderType.Square));
+            gameObjects.Add(new Player(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 2 - 30, _graphics.GraphicsDevice.Viewport.Height / 3 * 2), new Vector2(60, 60), 0), RenderType.Square, Color.Aquamarine));
             
             player = gameObjects.OfType<Player>().First();
             
             player.Init();
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2(_graphics.GraphicsDevice.Viewport.Width, 100), 0), RenderType.Square));
+            gameObjects.Add(new GameObject(new Transform(new Vector2((_graphics.GraphicsDevice.Viewport.Width / 3) * 2, _graphics.GraphicsDevice.Viewport.Height / 2), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.White));
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(0, 0), new Vector2(50, _graphics.GraphicsDevice.Viewport.Height - 100), 0), RenderType.Square));
+            gameObjects.Add(new GameObject(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, _graphics.GraphicsDevice.Viewport.Height / 4), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.White));
+
+            gameObjects.Add(new GameObject(new Transform(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2(_graphics.GraphicsDevice.Viewport.Width, 100), 0), RenderType.Square, Color.White));
+
+            gameObjects.Add(new GameObject(new Transform(new Vector2(0, 0), new Vector2(50, _graphics.GraphicsDevice.Viewport.Height - 100), 0), RenderType.Square, Color.White));
 
             base.Initialize();
         }
@@ -76,14 +80,12 @@ namespace Apollo
 
             player.Update(gameTime, gameObjects);
 
-            Debug.WriteLine(player.transform.position);
-
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.Clear(new Color(0,0.02f,0.07f));
 
             _shapeBatch.Begin();
 
@@ -108,7 +110,7 @@ namespace Apollo
                 {
 
                     case RenderType.Square:
-                        _shapeBatch.FillRectangle(obj.transform.position - cameraPosition, obj.transform.scale, Color.White);
+                        _shapeBatch.FillRectangle(obj.transform.position - cameraPosition, obj.transform.scale, obj.color);
                         break;
 
                     default:

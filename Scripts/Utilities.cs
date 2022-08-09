@@ -65,6 +65,18 @@
 
     }
 
+    public class MathUtils
+    {
+
+        public static Vector2 RoundVector2(Vector2 vector)
+        {
+
+            return new Vector2((float)Math.Round(vector.X), (float)Math.Round(vector.Y));
+
+        }
+
+    }
+
     public class KeyUtils
     {
 
@@ -72,6 +84,20 @@
         {
 
             if (Keyboard.GetState().IsKeyDown(key) && prevKeyState.IsKeyUp(key))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        public static bool IsKeyJustReleased(Keys key, KeyboardState prevKeyState)
+        {
+
+            if (Keyboard.GetState().IsKeyUp(key) && prevKeyState.IsKeyDown(key))
             {
                 return true;
             }

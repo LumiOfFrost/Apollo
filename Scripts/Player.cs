@@ -14,6 +14,12 @@ namespace Apollo.Scripts
     class Player : GameObject
     {
 
+        float coyoteTime;
+
+        bool isGrounded;
+
+        bool isJumping;
+
         protected KeyboardState prevKeyState;
 
         public void Init()
@@ -59,8 +65,10 @@ namespace Apollo.Scripts
                 velocity.X = 0;
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Space) && prevKeyState.IsKeyUp(Keys.Space))
+            if (KeyUtils.IsKeyJustPressed(Keys.Space, prevKeyState) && isGrounded)
             {
+
+                isJumping = true;
 
                 velocity.Y = -10;
 
@@ -72,12 +80,38 @@ namespace Apollo.Scripts
 
             }
 
+            if (KeyUtils.IsKeyJustReleased(Keys.Space, prevKeyState) && isJumping && velocity.Y < 0)
+            {
+
+                isJumping = false;
+
+                velocity.Y /= 3;
+
+            }
+
+            coyoteTime -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            if (velocity.Y < 0 || coyoteTime < 0)
+            {
+
+                isGrounded = false;
+
+            }
+
+            if (velocity.Y > 0)
+            {
+
+                isJumping = false;
+
+            }
+
         }
 
         private void Collisions(List<GameObject> gameObjects)
         {
 
             transform.position.X += velocity.X;
+            transform.position = MathUtils.RoundVector2(transform.position);
 
             collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
 
@@ -94,9 +128,9 @@ namespace Apollo.Scripts
 
                         transform.position.X += depth.X;
 
-                        collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
-
                         velocity.X = 0;
+
+                        collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
 
                     }
 
@@ -105,6 +139,7 @@ namespace Apollo.Scripts
             }
 
             transform.position.Y += velocity.Y;
+            transform.position = MathUtils.RoundVector2(transform.position);
 
             collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
 
@@ -119,21 +154,36 @@ namespace Apollo.Scripts
                     if (Math.Abs(depth.Y) > 0)
                     {
 
-                        transform.position.Y += depth.Y;
-
-                        collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
-
-                        if (velocity.Y < 0)
+                        if (Math.Abs(depth.X) < transform.scale.X / 3 && velocity.Y < 0)
                         {
 
-                            velocity.Y = 0 - velocity.Y / 2;
+                            transform.position.X += depth.X;
 
                         } else
                         {
 
-                            velocity.Y = 0;
+                            transform.position.Y += depth.Y;
+
+                            if (velocity.Y < 0)
+                            {
+
+                                velocity.Y = 0 - velocity.Y / 2;
+
+                            }
+                            else
+                            {
+
+                                coyoteTime = 0.15f;
+
+                                isGrounded = true;
+
+                                velocity.Y = 0;
+
+                            }
 
                         }
+
+                        collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
 
                     }
 
@@ -145,8 +195,10 @@ namespace Apollo.Scripts
 
         }
 
-        public Player(Transform tform, RenderType rType) : base(tform, rType)
+        public Player(Transform tform, RenderType rType, Color col) : base(tform, rType, col)
         {
+
+            color = col;
 
             transform = tform;
 

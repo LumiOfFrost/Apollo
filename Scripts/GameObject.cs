@@ -20,6 +20,8 @@ namespace Apollo.Scripts
     public class GameObject
     {
 
+        public Color color;
+
         public Rectangle collider;
 
         public Texture2D sprite;
@@ -30,8 +32,10 @@ namespace Apollo.Scripts
 
         public RenderType renderType = new RenderType();
 
-        public GameObject(Transform tform, RenderType rType)
+        public GameObject(Transform tform, RenderType rType, Color clr)
         {
+
+            color = clr;
 
             transform = tform;
 
