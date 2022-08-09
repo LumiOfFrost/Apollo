@@ -13,14 +13,15 @@ namespace Apollo.Scripts
 
         Square,
         Sprite,
-        Custom
+        Custom,
+        BorderSquare
 
     }
 
     public class GameObject
     {
 
-        public virtual void Update(GameTime gameTime, List<GameObject> gameObjects)
+        public virtual void Update(GameTime gameTime, List<GameObject> gameObjects, GraphicsDeviceManager _graphics, List<GameObject> gameObjectsToDestroy)
         {
 
         }
@@ -29,6 +30,12 @@ namespace Apollo.Scripts
         {
 
         }
+
+        public float borderThickness;
+
+        public string tag;
+
+        public Color outlineColor;
 
         public Color color;
 
@@ -42,10 +49,16 @@ namespace Apollo.Scripts
 
         public RenderType renderType = new RenderType();
 
-        public GameObject(Transform tform, RenderType rType, Color clr)
+        public GameObject(Transform tform, RenderType rType, Color clr, Color bdr, float bdrThickness = 0, string tg = "")
         {
 
             color = clr;
+
+            borderThickness = bdrThickness;
+
+            tag = tg;
+
+            outlineColor = bdr;
 
             transform = tform;
 

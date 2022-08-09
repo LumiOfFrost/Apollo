@@ -8,12 +8,19 @@ namespace Apollo.Scripts
     class PushableObject : GameObject
     {
 
-        public override void Update(GameTime gameTime, List<GameObject> gameObjects)
+        public override void Update(GameTime gameTime, List<GameObject> gameObjects, GraphicsDeviceManager _graphics, List<GameObject> gameObjectsToDestroy)
         {
 
             Movement(gameTime);
             Collisions(gameObjects);
             collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
+
+            if (transform.position.Y > _graphics.GraphicsDevice.Viewport.Height * 2)
+            {
+
+                gameObjectsToDestroy.Add(this);
+
+            }
 
         }
 
@@ -43,7 +50,7 @@ namespace Apollo.Scripts
                     if (Math.Abs(depth.X) > 0)
                     {
 
-                        if (other.GetType().Name == "PushableObject")
+                        if (other.tag == "pushable")
                         {
 
                             other.transform.position.X -= depth.X;
@@ -52,7 +59,7 @@ namespace Apollo.Scripts
 
                             PushableObject pushable = other as PushableObject;
 
-                            if (pushable.isColliding(gameObjects))
+                            if (pushable.IsColliding(gameObjects))
                             {
 
                                 transform.position.X += depth.X;
@@ -111,7 +118,7 @@ namespace Apollo.Scripts
 
         }
 
-        public bool isColliding(List<GameObject> gameObjects)
+        public bool IsColliding(List<GameObject> gameObjects)
         {
 
             collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
@@ -127,26 +134,28 @@ namespace Apollo.Scripts
                     if (Math.Abs(depth.X) > 0)
                     {
 
-                        if (other.GetType().Name == "PushableObject")
+                        if (other.tag == "pushable")
                         {
+
+                            collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
 
                             other.transform.position.X -= depth.X;
 
-                            velocity.X /= 2;
+                            var pushable = other as PushableObject;
 
-                            PushableObject pushable = other as PushableObject;
-
-                            if (pushable.isColliding(gameObjects))
+                            if (pushable.IsColliding(gameObjects))
                             {
 
-                                transform.position.X += depth.X;
+                                depth = RectExtras.GetIntersectionDepth(collider, other.collider);
 
+                                transform.position.X += depth.X;
                                 velocity.X = 0;
 
-                            }
+                                return true;
 
-                        }
-                        else
+                            } 
+
+                        } else
                         {
 
                             transform.position.X += depth.X;
@@ -156,16 +165,15 @@ namespace Apollo.Scripts
 
                         }
 
-                        collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
+                            
+
+                            
 
                     }
 
                 }
 
             }
-
-            transform.position.Y += velocity.Y;
-            transform.position = MathUtils.RoundVector2(transform.position);
 
             collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
 
@@ -200,9 +208,12 @@ namespace Apollo.Scripts
 
         }
 
-        public PushableObject(Transform tform, RenderType rType, Color col) : base(tform, rType, col)
+        public PushableObject(Transform tform, RenderType rType, Color col, Color bdr, float bdrThickness = 0) : base(tform, rType, col, bdr, bdrThickness)
         {
 
+            tag = "pushable";
+
+            outlineColor = bdr;
             transform = tform;
             renderType = rType;
             color = col;

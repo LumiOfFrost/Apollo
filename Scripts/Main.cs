@@ -24,6 +24,8 @@ namespace Apollo
 
         //Gameplay
 
+        private List<GameObject> gameObjectsToDestroy;
+
         private List<GameObject> gameObjects = new List<GameObject>();
 
         private Player player;
@@ -42,17 +44,17 @@ namespace Apollo
 
             cameraPosition = Vector2.Zero;
 
-            gameObjects.Add(new Player(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 2 - 20, _graphics.GraphicsDevice.Viewport.Height / 3 * 1.5f), new Vector2(40, 75), 0), RenderType.Square, Color.Aquamarine));
+            gameObjects.Add(new Player(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 2 - 20, _graphics.GraphicsDevice.Viewport.Height / 3 * 1.5f), new Vector2(40, 75), 0), RenderType.Square, Color.Aquamarine, Color.Transparent));
             
             player = gameObjects.OfType<Player>().First();
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2((_graphics.GraphicsDevice.Viewport.Width / 3) * 2, _graphics.GraphicsDevice.Viewport.Height / 2), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.White));
+            gameObjects.Add(new GameObject(new Transform(new Vector2((_graphics.GraphicsDevice.Viewport.Width / 3) * 2, _graphics.GraphicsDevice.Viewport.Height / 2), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.White, Color.Transparent));
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, _graphics.GraphicsDevice.Viewport.Height / 4), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.White));
+            gameObjects.Add(new GameObject(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, _graphics.GraphicsDevice.Viewport.Height / 4), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.White, Color.Transparent));
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2(_graphics.GraphicsDevice.Viewport.Width, 100), 0), RenderType.Square, Color.White));
+            gameObjects.Add(new GameObject(new Transform(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2(_graphics.GraphicsDevice.Viewport.Width, 100), 0), RenderType.Square, Color.White, Color.Transparent));
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(0, 0), new Vector2(50, _graphics.GraphicsDevice.Viewport.Height - 100), 0), RenderType.Square, Color.White));
+            gameObjects.Add(new GameObject(new Transform(new Vector2(0, 0), new Vector2(50, _graphics.GraphicsDevice.Viewport.Height - 100), 0), RenderType.Square, Color.White, Color.Transparent));
 
             foreach (GameObject obj in gameObjects)
             {
@@ -60,6 +62,8 @@ namespace Apollo
                 obj.Init();
 
             }
+
+            gameObjectsToDestroy = new List<GameObject>();
 
             base.Initialize();
         }
@@ -86,7 +90,7 @@ namespace Apollo
             if (Mouse.GetState().LeftButton == ButtonState.Pressed && prevButtonState == ButtonState.Released)
             {
 
-                gameObjects.Add(new PushableObject(new Transform(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y), new Vector2(30, 30), 0), RenderType.Square, Color.Red));
+                gameObjects.Add(new PushableObject(new Transform(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y), new Vector2(40, 40), 0), RenderType.Square, Color.RosyBrown, Color.SaddleBrown, 10));
 
             }
 
@@ -95,9 +99,19 @@ namespace Apollo
             foreach (GameObject obj in gameObjects)
             {
 
-                obj.Update(gameTime, gameObjects);
+                obj.Update(gameTime, gameObjects, _graphics, gameObjectsToDestroy);
 
             }
+
+            foreach(GameObject obj in gameObjectsToDestroy)
+            {
+
+                gameObjects.Remove(obj);
+
+            }
+            gameObjectsToDestroy.Clear();
+
+            Debug.WriteLine(gameObjects.Count);
 
             prevButtonState = Mouse.GetState().LeftButton;
 
@@ -132,6 +146,7 @@ namespace Apollo
 
                     case RenderType.Square:
                         _shapeBatch.FillRectangle(obj.transform.position - cameraPosition, obj.transform.scale, obj.color);
+                        _shapeBatch.BorderRectangle(obj.transform.position - cameraPosition, obj.transform.scale, obj.outlineColor, obj.borderThickness);
                         break;
 
                     default:

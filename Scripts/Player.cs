@@ -31,7 +31,7 @@ namespace Apollo.Scripts
 
         }
 
-        public override void Update(GameTime gameTime, List<GameObject> gameObjects)
+        public override void Update(GameTime gameTime, List<GameObject> gameObjects, GraphicsDeviceManager _graphics, List<GameObject> gameObjectsToDestroy)
         {
 
             collider = new Rectangle((int)transform.position.X, (int)transform.position.Y,(int)transform.scale.X, (int)transform.scale.Y);
@@ -47,7 +47,17 @@ namespace Apollo.Scripts
 
             Collisions(gameObjects);
 
+            if (transform.position.Y > _graphics.GraphicsDevice.Viewport.Height * 2)
+            {
+
+                transform.position = new Vector2(_graphics.GraphicsDevice.Viewport.Width / 2 - 20, _graphics.GraphicsDevice.Viewport.Height / 3 * 1.5f);
+
+                velocity.Y = 0;
+
+            }
+
             prevKeyState = Keyboard.GetState();
+
 
         }
 
@@ -138,7 +148,7 @@ namespace Apollo.Scripts
                     if (Math.Abs(depth.X) > 0)
                     {
 
-                        if (other.GetType().Name == "PushableObject")
+                        if (other.tag == "pushable")
                         {
 
                             other.transform.position.X -= depth.X;
@@ -147,7 +157,7 @@ namespace Apollo.Scripts
 
                             PushableObject pushable = other as PushableObject;
 
-                            if (pushable.isColliding(gameObjects))
+                            if (pushable.IsColliding(gameObjects))
                             {
 
                                 transform.position.X += depth.X;
@@ -189,15 +199,13 @@ namespace Apollo.Scripts
 
                     Vector2 depth = RectExtras.GetIntersectionDepth(collider, other.collider);
 
-                    if (Math.Abs(depth.Y) > 0 && other.GetType().Name != "PushableObject")
+                    if (Math.Abs(depth.Y) > 0)
                     {
 
-                        if (other.GetType().Name != "PushableObject" && velocity.Y <= 0)
+                        if (other.tag == "pushable" && velocity.Y <= 0)
                         {
 
                             other.transform.position.Y -= depth.Y;
-
-                            
 
                         } else if (Math.Abs(depth.X) < 15 && velocity.Y < 0)
                         {
@@ -240,8 +248,12 @@ namespace Apollo.Scripts
 
         }
 
-        public Player(Transform tform, RenderType rType, Color col) : base(tform, rType, col)
+        public Player(Transform tform, RenderType rType, Color col, Color bdr, float bdrThickness = 0) : base(tform, rType, col, bdr, bdrThickness)
         {
+
+            tag = "player";
+
+            outlineColor = bdr;
 
             color = col;
 
