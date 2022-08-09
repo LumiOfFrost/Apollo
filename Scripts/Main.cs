@@ -40,11 +40,9 @@ namespace Apollo
 
             cameraPosition = Vector2.Zero;
 
-            gameObjects.Add(new Player(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 2 - 30, _graphics.GraphicsDevice.Viewport.Height / 3 * 2), new Vector2(60, 60), 0), RenderType.Square, Color.Aquamarine));
+            gameObjects.Add(new Player(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 2 - 20, _graphics.GraphicsDevice.Viewport.Height / 3 * 2), new Vector2(40, 75), 0), RenderType.Square, Color.Aquamarine));
             
             player = gameObjects.OfType<Player>().First();
-            
-            player.Init();
 
             gameObjects.Add(new GameObject(new Transform(new Vector2((_graphics.GraphicsDevice.Viewport.Width / 3) * 2, _graphics.GraphicsDevice.Viewport.Height / 2), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.White));
 
@@ -53,6 +51,13 @@ namespace Apollo
             gameObjects.Add(new GameObject(new Transform(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2(_graphics.GraphicsDevice.Viewport.Width, 100), 0), RenderType.Square, Color.White));
 
             gameObjects.Add(new GameObject(new Transform(new Vector2(0, 0), new Vector2(50, _graphics.GraphicsDevice.Viewport.Height - 100), 0), RenderType.Square, Color.White));
+
+            foreach (GameObject obj in gameObjects)
+            {
+
+                obj.Init();
+
+            }
 
             base.Initialize();
         }
@@ -78,7 +83,12 @@ namespace Apollo
 
             prevKeyState = Keyboard.GetState();
 
-            player.Update(gameTime, gameObjects);
+            foreach (GameObject obj in gameObjects)
+            {
+
+                obj.Update(gameTime, gameObjects);
+
+            }
 
             base.Update(gameTime);
         }

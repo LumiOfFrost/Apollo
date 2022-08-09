@@ -20,6 +20,16 @@ namespace Apollo.Scripts
     public class GameObject
     {
 
+        public void Update(GameTime gameTime, List<GameObject> gameObjects)
+        {
+
+        }
+
+        public void Init()
+        {
+
+        }
+
         public Color color;
 
         public Rectangle collider;

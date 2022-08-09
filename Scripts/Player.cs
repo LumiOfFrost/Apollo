@@ -20,16 +20,18 @@ namespace Apollo.Scripts
 
         bool isJumping;
 
+        float bufferJump;
+
         protected KeyboardState prevKeyState;
 
-        public void Init()
+        public new void Init()
         {
 
             
 
         }
 
-        public void Update(GameTime gameTime, List<GameObject> gameObjects)
+        public new void Update(GameTime gameTime, List<GameObject> gameObjects)
         {
 
             collider = new Rectangle((int)transform.position.X, (int)transform.position.Y,(int)transform.scale.X, (int)transform.scale.Y);
@@ -65,8 +67,17 @@ namespace Apollo.Scripts
                 velocity.X = 0;
             }
 
-            if (KeyUtils.IsKeyJustPressed(Keys.Space, prevKeyState) && isGrounded)
+            if (KeyUtils.IsKeyJustPressed(Keys.Space, prevKeyState))
             {
+
+                bufferJump = 0.15f;
+
+            }
+
+            if (bufferJump > 0 && isGrounded)
+            {
+
+                bufferJump = 0;
 
                 isJumping = true;
 
@@ -90,6 +101,7 @@ namespace Apollo.Scripts
             }
 
             coyoteTime -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+            bufferJump -= (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             if (velocity.Y < 0 || coyoteTime < 0)
             {
@@ -126,9 +138,20 @@ namespace Apollo.Scripts
                     if (Math.Abs(depth.X) > 0)
                     {
 
-                        transform.position.X += depth.X;
+                        if (depth.Y < 0 && Math.Abs(depth.Y) <= 15)
+                        {
 
-                        velocity.X = 0;
+                            transform.position.Y += depth.Y;
+
+                        }
+                        else
+                        {
+
+                            transform.position.X += depth.X;
+
+                            velocity.X = 0;
+
+                        }
 
                         collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
 
@@ -154,7 +177,7 @@ namespace Apollo.Scripts
                     if (Math.Abs(depth.Y) > 0)
                     {
 
-                        if (Math.Abs(depth.X) < transform.scale.X / 3 && velocity.Y < 0)
+                        if (Math.Abs(depth.X) < 15 && velocity.Y < 0)
                         {
 
                             transform.position.X += depth.X;
