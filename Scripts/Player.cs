@@ -77,7 +77,9 @@ namespace Apollo.Scripts
         private void Collisions(List<GameObject> gameObjects)
         {
 
-            transform.position += velocity;
+            transform.position.X += velocity.X;
+
+            collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
 
             foreach (GameObject other in gameObjects)
             {
@@ -87,29 +89,49 @@ namespace Apollo.Scripts
 
                     Vector2 depth = RectExtras.GetIntersectionDepth(collider, other.collider);
 
-                    if (depth != Vector2.Zero)
+                    if (Math.Abs(depth.X) > 0)
                     {
 
-                        float absDepthX = Math.Abs(depth.X);
-                        float absDepthY = Math.Abs(depth.Y);
+                        transform.position.X += depth.X;
 
-                        if (absDepthY < absDepthX)
+                        collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
+
+                        velocity.X = 0;
+
+                    }
+
+                }
+
+            }
+
+            transform.position.Y += velocity.Y;
+
+            collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
+
+            foreach (GameObject other in gameObjects)
+            {
+
+                if (collider.Intersects(other.collider) && other.GetType().Name != "Player")
+                {
+
+                    Vector2 depth = RectExtras.GetIntersectionDepth(collider, other.collider);
+
+                    if (Math.Abs(depth.Y) > 0)
+                    {
+
+                        transform.position.Y += depth.Y;
+
+                        collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
+
+                        if (velocity.Y < 0)
                         {
 
-                            transform.position.Y += depth.Y;
-
-                            collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
-
-                            velocity.Y = 0;
+                            velocity.Y = 0 - velocity.Y / 2;
 
                         } else
                         {
 
-                            transform.position.X += depth.X;
-
-                            collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
-
-                            velocity.X = 0;
+                            velocity.Y = 0;
 
                         }
 
@@ -119,7 +141,7 @@ namespace Apollo.Scripts
 
             }
 
-            
+
 
         }
 
