@@ -24,14 +24,14 @@ namespace Apollo.Scripts
 
         protected KeyboardState prevKeyState;
 
-        public new void Init()
+        public override void Init()
         {
 
             
 
         }
 
-        public new void Update(GameTime gameTime, List<GameObject> gameObjects)
+        public override void Update(GameTime gameTime, List<GameObject> gameObjects)
         {
 
             collider = new Rectangle((int)transform.position.X, (int)transform.position.Y,(int)transform.scale.X, (int)transform.scale.Y);
@@ -130,7 +130,7 @@ namespace Apollo.Scripts
             foreach (GameObject other in gameObjects)
             {
 
-                if (collider.Intersects(other.collider) && other.GetType().Name != "Player")
+                if (collider.Intersects(other.collider) && other != this)
                 {
 
                     Vector2 depth = RectExtras.GetIntersectionDepth(collider, other.collider);
@@ -138,10 +138,23 @@ namespace Apollo.Scripts
                     if (Math.Abs(depth.X) > 0)
                     {
 
-                        if (depth.Y < 0 && Math.Abs(depth.Y) <= 15)
+                        if (other.GetType().Name == "PushableObject")
                         {
 
-                            transform.position.Y += depth.Y;
+                            other.transform.position.X -= depth.X;
+
+                            velocity.X /= 2;
+
+                            PushableObject pushable = other as PushableObject;
+
+                            if (pushable.isColliding(gameObjects))
+                            {
+
+                                transform.position.X += depth.X;
+
+                                velocity.X = 0;
+
+                            }
 
                         }
                         else
@@ -152,6 +165,8 @@ namespace Apollo.Scripts
                             velocity.X = 0;
 
                         }
+
+
 
                         collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
 
@@ -169,15 +184,22 @@ namespace Apollo.Scripts
             foreach (GameObject other in gameObjects)
             {
 
-                if (collider.Intersects(other.collider) && other.GetType().Name != "Player")
+                if (collider.Intersects(other.collider) && other != this)
                 {
 
                     Vector2 depth = RectExtras.GetIntersectionDepth(collider, other.collider);
 
-                    if (Math.Abs(depth.Y) > 0)
+                    if (Math.Abs(depth.Y) > 0 && other.GetType().Name != "PushableObject")
                     {
 
-                        if (Math.Abs(depth.X) < 15 && velocity.Y < 0)
+                        if (other.GetType().Name != "PushableObject" && velocity.Y <= 0)
+                        {
+
+                            other.transform.position.Y -= depth.Y;
+
+                            
+
+                        } else if (Math.Abs(depth.X) < 15 && velocity.Y < 0)
                         {
 
                             transform.position.X += depth.X;

@@ -20,12 +20,12 @@ namespace Apollo.Scripts
     public class GameObject
     {
 
-        public void Update(GameTime gameTime, List<GameObject> gameObjects)
+        public virtual void Update(GameTime gameTime, List<GameObject> gameObjects)
         {
 
         }
 
-        public void Init()
+        public virtual void Init()
         {
 
         }

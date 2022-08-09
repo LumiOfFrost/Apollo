@@ -16,6 +16,8 @@ namespace Apollo
         private KeyboardState prevKeyState;
         private ShapeBatch _shapeBatch;
 
+        private ButtonState prevButtonState;
+
         public Vector2 cameraPosition;
 
         public Vector2 cameraOffset;
@@ -40,7 +42,7 @@ namespace Apollo
 
             cameraPosition = Vector2.Zero;
 
-            gameObjects.Add(new Player(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 2 - 20, _graphics.GraphicsDevice.Viewport.Height / 3 * 2), new Vector2(40, 75), 0), RenderType.Square, Color.Aquamarine));
+            gameObjects.Add(new Player(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 2 - 20, _graphics.GraphicsDevice.Viewport.Height / 3 * 1.5f), new Vector2(40, 75), 0), RenderType.Square, Color.Aquamarine));
             
             player = gameObjects.OfType<Player>().First();
 
@@ -81,6 +83,13 @@ namespace Apollo
                 _graphics.ToggleFullScreen();
             }
 
+            if (Mouse.GetState().LeftButton == ButtonState.Pressed && prevButtonState == ButtonState.Released)
+            {
+
+                gameObjects.Add(new PushableObject(new Transform(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y), new Vector2(30, 30), 0), RenderType.Square, Color.Red));
+
+            }
+
             prevKeyState = Keyboard.GetState();
 
             foreach (GameObject obj in gameObjects)
@@ -89,6 +98,8 @@ namespace Apollo
                 obj.Update(gameTime, gameObjects);
 
             }
+
+            prevButtonState = Mouse.GetState().LeftButton;
 
             base.Update(gameTime);
         }
