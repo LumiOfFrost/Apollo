@@ -31,7 +31,7 @@ namespace Apollo.Scripts
 
         }
 
-        public override void Update(GameTime gameTime, List<GameObject> gameObjects, GraphicsDeviceManager _graphics, List<GameObject> gameObjectsToDestroy)
+        public override void Update(Main main, GameTime gameTime)
         {
 
             collider = new Rectangle((int)transform.position.X, (int)transform.position.Y,(int)transform.scale.X, (int)transform.scale.Y);
@@ -45,12 +45,12 @@ namespace Apollo.Scripts
 
             Movement(prevKeyState, gameTime);
 
-            Collisions(gameObjects);
+            Collisions(main.gameObjects);
 
-            if (transform.position.Y > _graphics.GraphicsDevice.Viewport.Height * 2)
+            if (transform.position.Y > main._graphics.GraphicsDevice.Viewport.Height * 2)
             {
 
-                transform.position = new Vector2(_graphics.GraphicsDevice.Viewport.Width / 2 - 20, _graphics.GraphicsDevice.Viewport.Height / 3 * 1.5f);
+                transform.position = new Vector2(main._graphics.GraphicsDevice.Viewport.Width / 2 - 20, main._graphics.GraphicsDevice.Viewport.Height / 3 * 1.5f);
 
                 velocity.Y = 0;
 
@@ -148,35 +148,9 @@ namespace Apollo.Scripts
                     if (Math.Abs(depth.X) > 0)
                     {
 
-                        if (other.tag == "pushable")
-                        {
+                        transform.position.X += depth.X;
 
-                            other.transform.position.X -= depth.X;
-
-                            velocity.X /= 2;
-
-                            PushableObject pushable = other as PushableObject;
-
-                            if (pushable.IsColliding(gameObjects))
-                            {
-
-                                transform.position.X += depth.X;
-
-                                velocity.X = 0;
-
-                            }
-
-                        }
-                        else
-                        {
-
-                            transform.position.X += depth.X;
-
-                            velocity.X = 0;
-
-                        }
-
-
+                        velocity.X = 0;
 
                         collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
 
@@ -201,13 +175,8 @@ namespace Apollo.Scripts
 
                     if (Math.Abs(depth.Y) > 0)
                     {
-
-                        if (other.tag == "pushable" && velocity.Y <= 0)
-                        {
-
-                            other.transform.position.Y -= depth.Y;
-
-                        } else if (Math.Abs(depth.X) < 15 && velocity.Y < 0)
+                        
+                        if (Math.Abs(depth.X) < 15 && velocity.Y < 0)
                         {
 
                             transform.position.X += depth.X;

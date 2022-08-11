@@ -6,31 +6,35 @@ using Apos.Shapes;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using MonoGame.Extended;
+using MonoGame.Extended.ViewportAdapters;
+using System;
 
 namespace Apollo
 {
     public class Main : Game
     {
-        private GraphicsDeviceManager _graphics;
+        public GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private KeyboardState prevKeyState;
         private ShapeBatch _shapeBatch;
-
-        private ButtonState prevButtonState;
-
         public Vector2 cameraPosition;
 
         public Vector2 cameraOffset;
 
         //Gameplay
 
-        private List<GameObject> gameObjectsToDestroy;
+        public List<GameObject> gameObjectsToDestroy;
 
-        private List<GameObject> gameObjects = new List<GameObject>();
+        public List<GameObject> gameObjects = new List<GameObject>();
 
-        private Player player;
+        // Graphics
 
-        // Sprites
+        private OrthographicCamera _camera;
+
+        private GameObject cameraTarget;
+
+        private float defaultZoom = 0.6f;
 
         public Main()
         {
@@ -42,11 +46,15 @@ namespace Apollo
         protected override void Initialize()
         {
 
+            var viewportAdapter = new BoxingViewportAdapter(Window, GraphicsDevice, 800, 480);
+            _camera = new OrthographicCamera(viewportAdapter);
+
             cameraPosition = Vector2.Zero;
 
-            gameObjects.Add(new Player(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 2 - 20, _graphics.GraphicsDevice.Viewport.Height / 3 * 1.5f), new Vector2(40, 75), 0), RenderType.Square, Color.Aquamarine, Color.Transparent));
-            
-            player = gameObjects.OfType<Player>().First();
+            _camera.Zoom = defaultZoom;
+
+            _graphics.PreferredBackBufferWidth = 1280;
+            _graphics.PreferredBackBufferHeight = 720;
 
             gameObjects.Add(new GameObject(new Transform(new Vector2((_graphics.GraphicsDevice.Viewport.Width / 3) * 2, _graphics.GraphicsDevice.Viewport.Height / 2), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.White, Color.Transparent));
 
@@ -55,6 +63,10 @@ namespace Apollo
             gameObjects.Add(new GameObject(new Transform(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2(_graphics.GraphicsDevice.Viewport.Width, 100), 0), RenderType.Square, Color.White, Color.Transparent));
 
             gameObjects.Add(new GameObject(new Transform(new Vector2(0, 0), new Vector2(50, _graphics.GraphicsDevice.Viewport.Height - 100), 0), RenderType.Square, Color.White, Color.Transparent));
+
+            gameObjects.Add(new Player(new Transform(new Vector2(100, 0), new Vector2(30, 60), 0), RenderType.Square, Color.Aquamarine, Color.Transparent));
+
+            cameraTarget = gameObjects.OfType<Player>().First();
 
             foreach (GameObject obj in gameObjects)
             {
@@ -87,19 +99,12 @@ namespace Apollo
                 _graphics.ToggleFullScreen();
             }
 
-            if (Mouse.GetState().LeftButton == ButtonState.Pressed && prevButtonState == ButtonState.Released)
-            {
-
-                gameObjects.Add(new PushableObject(new Transform(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y), new Vector2(40, 40), 0), RenderType.Square, Color.RosyBrown, Color.SaddleBrown, 10));
-
-            }
-
             prevKeyState = Keyboard.GetState();
 
             foreach (GameObject obj in gameObjects)
             {
 
-                obj.Update(gameTime, gameObjects, _graphics, gameObjectsToDestroy);
+                obj.Update(this, gameTime);
 
             }
 
@@ -109,22 +114,32 @@ namespace Apollo
                 gameObjects.Remove(obj);
 
             }
+
             gameObjectsToDestroy.Clear();
 
-            Debug.WriteLine(gameObjects.Count);
-
-            prevButtonState = Mouse.GetState().LeftButton;
+            UpdateCamera();
 
             base.Update(gameTime);
+        }
+
+        private void UpdateCamera()
+        {
+
+            _camera.Position = new Vector2(
+            MathHelper.Lerp(_camera.Position.X, cameraTarget.GetCenter().X - (_camera.BoundingRectangle.Width / 2) * _camera.Zoom, 0.08f),
+            MathHelper.Lerp(_camera.Position.Y, cameraTarget.GetCenter().Y - ((_camera.BoundingRectangle.Height / 4) * 3) * _camera.Zoom, 0.08f));
+
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(new Color(0,0.02f,0.07f));
 
-            _shapeBatch.Begin();
+            var transformMatrix = _camera.GetViewMatrix();
 
-            _spriteBatch.Begin(samplerState:SamplerState.PointClamp, sortMode:SpriteSortMode.BackToFront);
+            _shapeBatch.Begin(transformMatrix);
+
+            _spriteBatch.Begin(samplerState:SamplerState.PointClamp, sortMode:SpriteSortMode.BackToFront, transformMatrix:transformMatrix);
 
             Render();
 
@@ -145,8 +160,8 @@ namespace Apollo
                 {
 
                     case RenderType.Square:
-                        _shapeBatch.FillRectangle(obj.transform.position - cameraPosition, obj.transform.scale, obj.color);
-                        _shapeBatch.BorderRectangle(obj.transform.position - cameraPosition, obj.transform.scale, obj.outlineColor, obj.borderThickness);
+                        _shapeBatch.FillRectangle(obj.transform.position, obj.transform.scale, obj.color);
+                        _shapeBatch.BorderRectangle(obj.transform.position, obj.transform.scale, obj.outlineColor, obj.borderThickness);
                         break;
 
                     default:

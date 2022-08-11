@@ -21,7 +21,7 @@ namespace Apollo.Scripts
     public class GameObject
     {
 
-        public virtual void Update(GameTime gameTime, List<GameObject> gameObjects, GraphicsDeviceManager _graphics, List<GameObject> gameObjectsToDestroy)
+        public virtual void Update(Main main, GameTime gameTime)
         {
 
         }
@@ -67,6 +67,13 @@ namespace Apollo.Scripts
             collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
 
             renderType = rType;
+
+        }
+
+        public Vector2 GetCenter()
+        {
+
+            return new Vector2(transform.position.X + (transform.scale.X / 2), transform.position.Y + (transform.scale.Y / 2));
 
         }
 
