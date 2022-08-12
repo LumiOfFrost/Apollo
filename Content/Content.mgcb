@@ -13,6 +13,13 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin Fonts/lucidaConsole.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Fonts/lucidaConsole.spritefont
+
 #begin Sprites/spr_Test_Player.png
 /importer:TextureImporter
 /processor:TextureProcessor

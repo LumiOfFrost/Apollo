@@ -1,12 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Microsoft.Xna.Framework.Input;
-using Apollo.Scripts;
-using MonoGame.Extended;
-using System.Diagnostics;
 
 namespace Apollo.Scripts
 {
@@ -22,7 +17,9 @@ namespace Apollo.Scripts
 
         float bufferJump;
 
-        protected KeyboardState prevKeyState;
+        private KeyboardState prevKeyState;
+
+        private GamePadState prevPadState;
 
         public override void Init()
         {
@@ -43,32 +40,39 @@ namespace Apollo.Scripts
 
             }
 
+            if (prevPadState == null)
+            {
+
+                prevPadState = GamePad.GetState(PlayerIndex.One);
+
+            }
+
             Movement(prevKeyState, gameTime);
 
             Collisions(main.gameObjects);
 
-            if (transform.position.Y > main._graphics.GraphicsDevice.Viewport.Height * 2)
+            if (transform.position.Y > 1500)
             {
 
-                transform.position = new Vector2(main._graphics.GraphicsDevice.Viewport.Width / 2 - 20, main._graphics.GraphicsDevice.Viewport.Height / 3 * 1.5f);
+                transform.position = new Vector2(300, 60);
 
                 velocity.Y = 0;
 
             }
 
             prevKeyState = Keyboard.GetState();
-
+            prevPadState = GamePad.GetState(PlayerIndex.One);
 
         }
 
         private void Movement(KeyboardState prevKeyState, GameTime gameTime)
         {
 
-            if (Keyboard.GetState().IsKeyDown(Keys.A) && !Keyboard.GetState().IsKeyDown(Keys.D))
+            if (InputManager.IsMovingLeft() && !InputManager.IsMovingRight())
             {
                 velocity.X = -10;
             }
-            else if (Keyboard.GetState().IsKeyDown(Keys.D) && !Keyboard.GetState().IsKeyDown(Keys.A))
+            else if (InputManager.IsMovingRight() && !InputManager.IsMovingLeft())
             {
                 velocity.X = 10;
             }
@@ -77,7 +81,7 @@ namespace Apollo.Scripts
                 velocity.X = 0;
             }
 
-            if (KeyUtils.IsKeyJustPressed(Keys.Space, prevKeyState))
+            if (InputManager.Jump(prevKeyState, prevPadState))
             {
 
                 bufferJump = 0.15f;
@@ -97,11 +101,11 @@ namespace Apollo.Scripts
             else
             {
 
-                velocity.Y += 19.6f * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                velocity.Y += 19.6f * (float)gameTime.ElapsedGameTime.TotalSeconds * Main.gameSpeed;
 
             }
 
-            if (KeyUtils.IsKeyJustReleased(Keys.Space, prevKeyState) && isJumping && velocity.Y < 0)
+            if (InputManager.Fall(prevKeyState, prevPadState) && isJumping)
             {
 
                 isJumping = false;
@@ -110,8 +114,8 @@ namespace Apollo.Scripts
 
             }
 
-            coyoteTime -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-            bufferJump -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+            coyoteTime -= (float)gameTime.ElapsedGameTime.TotalSeconds * Main.gameSpeed;
+            bufferJump -= (float)gameTime.ElapsedGameTime.TotalSeconds * Main.gameSpeed;
 
             if (velocity.Y < 0 || coyoteTime < 0)
             {
@@ -132,7 +136,7 @@ namespace Apollo.Scripts
         private void Collisions(List<GameObject> gameObjects)
         {
 
-            transform.position.X += velocity.X;
+            transform.position.X += velocity.X * Main.gameSpeed;
             transform.position = MathUtils.RoundVector2(transform.position);
 
             collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
@@ -160,7 +164,7 @@ namespace Apollo.Scripts
 
             }
 
-            transform.position.Y += velocity.Y;
+            transform.position.Y += velocity.Y * Main.gameSpeed;
             transform.position = MathUtils.RoundVector2(transform.position);
 
             collider = new Rectangle((int)transform.position.X, (int)transform.position.Y, (int)transform.scale.X, (int)transform.scale.Y);
