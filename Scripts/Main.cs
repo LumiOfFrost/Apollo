@@ -26,7 +26,6 @@ namespace Apollo
 
         private bool paused;
         private string command;
-        private int cursorPos;
 
         //Gameplay
 
@@ -46,6 +45,8 @@ namespace Apollo
 
         private float defaultZoom = 0.8f;
 
+        private float pauseDelay = 0;
+
         public Main()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -54,7 +55,7 @@ namespace Apollo
         }
 
         protected override void Initialize()
-        {
+        { 
 
             command = "";
 
@@ -91,6 +92,8 @@ namespace Apollo
 
             gameObjectsToDestroy = new List<GameObject>();
 
+            Window.TextInput += Window_TextInput;
+
             base.Initialize();
         }
 
@@ -108,7 +111,7 @@ namespace Apollo
         protected override void Update(GameTime gameTime)
         {
 
-            if (Keyboard.GetState().IsKeyDown(Keys.OemTilde) && !prevKeyState.IsKeyDown(Keys.OemTilde))
+            if (Keyboard.GetState().IsKeyDown(Keys.OemTilde) && !prevKeyState.IsKeyDown(Keys.OemTilde) && pauseDelay <= 0)
             {
                 switch (paused)
                 {
@@ -117,18 +120,29 @@ namespace Apollo
                         InputManager.inputActive = false;
                         gameSpeed = 0;
                         paused = true;
-                        Debug.WriteLine("paused");
+                        pauseDelay = 0.3f;
                         break;
                     case true:
                         InputManager.inputActive = true;
                         gameSpeed = 1;
                         paused = false;
                         command = "";
-                        Debug.WriteLine("unpaused");
+                        pauseDelay = 0.3f;
                         break;
 
                 }
                 
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape) && !prevKeyState.IsKeyDown(Keys.Escape) && pauseDelay <= 0 && paused)
+            {
+
+                InputManager.inputActive = true;
+                gameSpeed = 1;
+                paused = false;
+                command = "";
+                pauseDelay = 0.3f;
+
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.F11) && !prevKeyState.IsKeyDown(Keys.F11))
@@ -160,16 +174,47 @@ namespace Apollo
             } else
             {
 
-                if (Keyboard.GetState().GetPressedKeys().Length == 1 && Keyboard.GetState().GetPressedKeys()[0] != Keys.OemTilde)
-                {
-                    CharEntered(Keyboard.GetState().GetPressedKeys()[0].ToString().ToCharArray()[0]);
-                }
+                
 
             }
             
             UpdateCamera();
 
+            pauseDelay -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             base.Update(gameTime);
+        }
+
+        private void Window_TextInput(object sender, TextInputEventArgs e)
+        {
+
+            if (paused)
+            {
+
+                if (!char.IsControl(e.Character))
+                {
+
+                    command += e.Character;
+
+                } else if (e.Key == Keys.Back && command.Length > 0)
+                {
+
+                    command = command.Substring(0, command.Length - 1);
+
+                } else if (e.Key == Keys.Enter && pauseDelay <= 0)
+                {
+
+                    InputManager.inputActive = true;
+                    gameSpeed = 1;
+                    paused = false;
+                    pauseDelay = 0.3f;
+                    RunCommand();
+                    command = "";
+
+                }
+
+            }
+
         }
 
         private void UpdateCamera()
@@ -207,12 +252,12 @@ namespace Apollo
 
             if (paused)
             {
-                _shapeBatch.FillRectangle(Vector2.Zero, _camera.BoundingRectangle.Size, new Color(0, 0, 0, 0.5f));
+                _shapeBatch.FillRectangle(Vector2.Zero, new Vector2(_graphics.GraphicsDevice.Viewport.Width, _graphics.GraphicsDevice.Viewport.Height), new Color(0, 0, 0, 0.5f));
                 _shapeBatch.FillRectangle(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2((_graphics.GraphicsDevice.Viewport.Width / 3) * 2, 20), new Color(0, 0, 0, 0.5f));
 
                 Vector2 middleText = lucidaConsole.MeasureString(command) / 2;
 
-                _spriteBatch.DrawString(lucidaConsole, command, new Vector2(middleText.X + 5, _graphics.GraphicsDevice.Viewport.Height - 100), Color.White, 0, middleText, 1.0f, SpriteEffects.None, 0.5f);
+                _spriteBatch.DrawString(lucidaConsole, command, new Vector2(middleText.X + 5, _graphics.GraphicsDevice.Viewport.Height - 90), Color.White, 0, middleText, 1.0f, SpriteEffects.None, 0.5f);
 
             }
 
@@ -223,13 +268,44 @@ namespace Apollo
             base.Draw(gameTime);
         }
 
-        public void CharEntered(char c)
+        private void RunCommand()
         {
 
-            string newText = command.Insert(cursorPos, c.ToString()); //Insert the char
-            command = newText; //Set the text
-            cursorPos++; //Move the text cursor
-            
+            string[] commandSplit = command.Split(" ");
+
+            switch (commandSplit[0].ToLower())
+            {
+
+                case "end":
+                    Exit();
+                    break;
+                case "zoom":
+                    if (commandSplit.Length == 2)
+                    {
+                        if (float.TryParse(commandSplit[1], out float newZoom) && newZoom > 0)
+                        {
+
+                            _camera.Zoom = newZoom;
+
+                        }
+                        else if (newZoom > 0)
+                        {
+                            Debug.WriteLine("Invalid Parameter! Do you know how to use this command?");
+                        }
+                    } else
+                    {
+
+                        Debug.WriteLine("Invalid Parameter! Do you know how to use this command?");
+
+                    }
+                    break;
+
+                default:
+                    Debug.WriteLine("Invalid Command! Did you spell it correctly?");
+                    break;
+
+            }
+
         }
 
         protected void Render()
