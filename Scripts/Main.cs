@@ -76,7 +76,7 @@ namespace Apollo
 
             _camera.Zoom = defaultZoom;
 
-            defaultOffset = new Vector2((_camera.BoundingRectangle.Width / 2), ((_camera.BoundingRectangle.Height / 4) * 3));
+            defaultOffset = new Vector2((_camera.BoundingRectangle.Width / 2), ((_camera.BoundingRectangle.Height / 4) * 2.5f));
 
             cameraOffset = defaultOffset;
 
@@ -85,15 +85,15 @@ namespace Apollo
 
             _renderTarget = new RenderTarget2D(_graphics.GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2((_graphics.GraphicsDevice.Viewport.Width / 3) * 2, _graphics.GraphicsDevice.Viewport.Height / 2), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.White, Color.Transparent));
+            gameObjects.Add(new GameObject(new Transform(new Vector2((_graphics.GraphicsDevice.Viewport.Width / 3) * 2, _graphics.GraphicsDevice.Viewport.Height / 2), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, new Color(0.5f, 0.5f, 0.5f, 1), Color.Transparent));
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, _graphics.GraphicsDevice.Viewport.Height / 4), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, new Color(0.5f,0.5f,0.5f,1), Color.Transparent));
+            gameObjects.Add(new GameObject(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, _graphics.GraphicsDevice.Viewport.Height / 4), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, new Color(0.5f, 0.5f, 0.5f, 1), Color.Transparent));
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2(_graphics.GraphicsDevice.Viewport.Width, 100), 0), RenderType.Square, new Color(0.75f, 0.75f, 0.75f, 1), Color.White));
+            gameObjects.Add(new GameObject(new Transform(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2(_graphics.GraphicsDevice.Viewport.Width, 100), 0), RenderType.Square, new Color(0.5f, 0.5f, 0.5f, 1), Color.White));
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(0, 0), new Vector2(50, _graphics.GraphicsDevice.Viewport.Height - 100), 0), RenderType.Square, new Color(0.25f, 0.25f, 0.25f, 1), Color.White));
+            gameObjects.Add(new GameObject(new Transform(new Vector2(0, 0), new Vector2(50, _graphics.GraphicsDevice.Viewport.Height - 100), 0), RenderType.Square, new Color(0.5f, 0.5f, 0.5f, 1), Color.White));
 
-            gameObjects.Add(new Player(new Transform(new Vector2(100, 0), new Vector2(30, 60), 0), RenderType.Square, Color.White, Color.Transparent));
+            gameObjects.Add(new Player(new Transform(new Vector2(100, 0), new Vector2(30, 60), 0), RenderType.Square, new Color(0.25f, 0.25f, 0.25f, 1), Color.Transparent));
 
             player = gameObjects.OfType<Player>().First();
 
@@ -240,10 +240,6 @@ namespace Apollo
         private void UpdateCamera()
         {
 
-            defaultOffset = new Vector2((_camera.BoundingRectangle.Width / 2), ((_camera.BoundingRectangle.Height / 4) * 3));
-
-            cameraOffset = defaultOffset;
-
             _camera.Position = new Vector2(
             MathHelper.Lerp(_camera.Position.X, cameraTarget.GetCenter().X - cameraOffset.X * _camera.Zoom, 0.08f),
             MathHelper.Lerp(_camera.Position.Y, cameraTarget.GetCenter().Y - cameraOffset.Y * _camera.Zoom, 0.08f));
@@ -253,25 +249,21 @@ namespace Apollo
         protected override void Draw(GameTime gameTime)
         {
 
-            GraphicsDevice.Clear(new Color(0,0.02f,0.07f));
+            GraphicsDevice.Clear(Color.Black);
 
             GraphicsDevice.SetRenderTarget(_renderTarget);
 
-            var transformMatrix = _camera.GetViewMatrix();
+            _spriteBatch.Begin();
 
-            _shapeBatch.Begin(transformMatrix);
+            _spriteBatch.FillRectangle(new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White, layerDepth: 0f);
+
+            _spriteBatch.End();
+
+            var transformMatrix = _camera.GetViewMatrix();
 
             _spriteBatch.Begin(samplerState:SamplerState.PointClamp, sortMode:SpriteSortMode.BackToFront, transformMatrix:transformMatrix);
 
             Render();
-
-            _spriteBatch.End();
-
-            _shapeBatch.End();
-
-            _spriteBatch.Begin();
-
-            _spriteBatch.DrawRectangle(new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), new Color(0, 0.02f, 0.07f));
 
             _spriteBatch.End();
 
@@ -289,8 +281,6 @@ namespace Apollo
 
             _spriteBatch.End();
 
-            _shapeBatch.Begin();
-
             _spriteBatch.Begin();
 
             if (consoleOpen)
@@ -303,8 +293,6 @@ namespace Apollo
                 _spriteBatch.DrawString(lucidaConsole, command, new Vector2(middleText.X + 5, _graphics.GraphicsDevice.Viewport.Height - 90), Color.White, 0, middleText, 1.0f, SpriteEffects.None, 0.5f);
 
             }
-
-            _shapeBatch.End();
 
             _spriteBatch.End();
 
@@ -410,7 +398,7 @@ namespace Apollo
                 {
 
                     case RenderType.Square:
-                        _shapeBatch.FillRectangle(obj.transform.position, obj.transform.scale, obj.color);
+                        _spriteBatch.FillRectangle(obj.transform.position, obj.transform.scale, obj.color);
                         break;
 
                     default:
