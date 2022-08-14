@@ -9,9 +9,9 @@
 
 Texture2D SpriteTexture;
 
-uniform Texture2D PaletteTexture;
+Texture2D PaletteTexture;
 
-uniform int PaletteId = 0;
+int PaletteId;
 
 sampler2D SpriteTextureSampler = sampler_state
 {

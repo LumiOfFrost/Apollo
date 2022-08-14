@@ -123,6 +123,8 @@ namespace Apollo
             lucidaConsole = Content.Load<SpriteFont>("Fonts/lucidaConsole");
 
             gbEffect = Content.Load<Effect>("Shaders/GBShader");
+            gbEffect.Parameters["PaletteTexture"].SetValue(colorPalettes);
+            gbEffect.Parameters["PaletteId"].SetValue(0);
 
             colorPalettes = Content.Load<Texture2D>("Sprites/ColorPalettes");
 
@@ -252,8 +254,6 @@ namespace Apollo
 
         protected override void Draw(GameTime gameTime)
         {
-
-            GLint myLoc = glGetUniformLocation(p, "myVar");
 
             gbEffect.Parameters["PaletteTexture"].SetValue(colorPalettes);
             gbEffect.Parameters["PaletteId"].SetValue(0);
