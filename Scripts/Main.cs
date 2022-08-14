@@ -283,6 +283,8 @@ namespace Apollo
 
             gbEffect.Parameters["PaletteTexture"].SetValue(colorPalettes);
 
+            gbEffect.Parameters["paletteHeight"].SetValue(colorPalettes.Height);
+
             _spriteBatch.Draw(_renderTarget, new Rectangle(0,0,GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
 
             _spriteBatch.End();
@@ -365,7 +367,7 @@ namespace Apollo
                         if(int.TryParse(commandSplit[1], out int newPalette))
                         {
 
-                            if(newPalette >= 0 && newPalette <= 4)
+                            if(newPalette >= 0 && newPalette <= colorPalettes.Height - 1)
                             {
 
                                 paletteId = newPalette;

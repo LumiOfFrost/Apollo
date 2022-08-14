@@ -11,6 +11,8 @@ Texture2D SpriteTexture;
 
 Texture2D PaletteTexture;
 
+int paletteHeight = 6;
+
 int PaletteId = 0;
 
 sampler2D SpriteTextureSampler = sampler_state
@@ -42,31 +44,32 @@ float4 MainPS(VertexShaderOutput input) : COLOR
 	int palId = PaletteId;
 
 	Texture2D palTex = PaletteTexture;
+	
 
 	if (color.r == 0) {
 
 
-		return tex2D(PaletteTextureSampler, float2(0.1f,0.1f + 0.2f * palId) );
+		return tex2D(PaletteTextureSampler, float2(0.1f, 0.5f / paletteHeight + (1.0f / paletteHeight) * palId));
 
 	}
 	else if (color.r <= 0.25f) {
 
-		return tex2D(PaletteTextureSampler, float2(0.3f, 0.1f + 0.2f * palId));
+		return tex2D(PaletteTextureSampler, float2(0.3f, 0.5f / paletteHeight + (1.0f / paletteHeight) * palId));
 
 	}
 	else if (color.r <= 0.5f) {
 
-		return tex2D(PaletteTextureSampler, float2(0.5f, 0.1f + 0.2f * palId));
+		return tex2D(PaletteTextureSampler, float2(0.5f, 0.5f / paletteHeight + (1.0f / paletteHeight) * palId));
 
 	}
 	else if (color.r <= 0.75f) {
 
-		return tex2D(PaletteTextureSampler, float2(0.7f, 0.1f + 0.2f * palId));
+		return tex2D(PaletteTextureSampler, float2(0.7f, 0.5f / paletteHeight + (1.0f / paletteHeight) * palId));
 
 	}
 	else {
 
-		return tex2D(PaletteTextureSampler, float2(0.9f, 0.1f + 0.2f * palId));
+		return tex2D(PaletteTextureSampler, float2(0.9f, 0.5f / paletteHeight + (1.0f / paletteHeight) * palId));
 
 	}
 
