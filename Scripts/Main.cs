@@ -24,7 +24,7 @@ namespace Apollo
 
         //Input
 
-        private bool paused;
+        private bool consoleOpen;
         private string command;
 
         //Gameplay
@@ -35,7 +35,11 @@ namespace Apollo
 
         public List<GameObject> gameObjects = new List<GameObject>();
 
+        Player player;
+
         // Graphics
+
+        private RenderTarget2D _renderTarget;
 
         private SpriteFont lucidaConsole;
 
@@ -47,6 +51,12 @@ namespace Apollo
 
         private float pauseDelay = 0;
 
+        private Effect gbEffect;
+
+        private int paletteId;
+
+        private Texture2D colorPalettes;
+
         public Main()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -55,7 +65,9 @@ namespace Apollo
         }
 
         protected override void Initialize()
-        { 
+        {
+
+            paletteId = 0;
 
             command = "";
 
@@ -71,15 +83,19 @@ namespace Apollo
             _graphics.PreferredBackBufferWidth = 1280;
             _graphics.PreferredBackBufferHeight = 720;
 
+            _renderTarget = new RenderTarget2D(_graphics.GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
+
             gameObjects.Add(new GameObject(new Transform(new Vector2((_graphics.GraphicsDevice.Viewport.Width / 3) * 2, _graphics.GraphicsDevice.Viewport.Height / 2), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.White, Color.Transparent));
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, _graphics.GraphicsDevice.Viewport.Height / 4), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.White, Color.Transparent));
+            gameObjects.Add(new GameObject(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, _graphics.GraphicsDevice.Viewport.Height / 4), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.Black, Color.Transparent));
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2(_graphics.GraphicsDevice.Viewport.Width, 100), 0), RenderType.Square, Color.White, Color.Transparent));
+            gameObjects.Add(new GameObject(new Transform(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2(_graphics.GraphicsDevice.Viewport.Width, 100), 0), RenderType.Square, Color.White, Color.White));
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(0, 0), new Vector2(50, _graphics.GraphicsDevice.Viewport.Height - 100), 0), RenderType.Square, Color.White, Color.Transparent));
+            gameObjects.Add(new GameObject(new Transform(new Vector2(0, 0), new Vector2(50, _graphics.GraphicsDevice.Viewport.Height - 100), 0), RenderType.Square, Color.White, Color.White));
 
-            gameObjects.Add(new Player(new Transform(new Vector2(100, 0), new Vector2(30, 60), 0), RenderType.Square, Color.Aquamarine, Color.Transparent));
+            gameObjects.Add(new Player(new Transform(new Vector2(100, 0), new Vector2(30, 60), 0), RenderType.Square, Color.White, Color.Transparent));
+
+            player = gameObjects.OfType<Player>().First();
 
             cameraTarget = gameObjects.OfType<Player>().First();
 
@@ -106,6 +122,10 @@ namespace Apollo
 
             lucidaConsole = Content.Load<SpriteFont>("Fonts/lucidaConsole");
 
+            gbEffect = Content.Load<Effect>("Shaders/GBShader");
+
+            colorPalettes = Content.Load<Texture2D>("Sprites/ColorPalettes");
+
         }
 
         protected override void Update(GameTime gameTime)
@@ -113,19 +133,19 @@ namespace Apollo
 
             if (Keyboard.GetState().IsKeyDown(Keys.OemTilde) && !prevKeyState.IsKeyDown(Keys.OemTilde) && pauseDelay <= 0)
             {
-                switch (paused)
+                switch (consoleOpen)
                 {
 
                     case false:
                         InputManager.inputActive = false;
                         gameSpeed = 0;
-                        paused = true;
+                        consoleOpen = true;
                         pauseDelay = 0.3f;
                         break;
                     case true:
                         InputManager.inputActive = true;
                         gameSpeed = 1;
-                        paused = false;
+                        consoleOpen = false;
                         command = "";
                         pauseDelay = 0.3f;
                         break;
@@ -134,12 +154,12 @@ namespace Apollo
                 
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Escape) && !prevKeyState.IsKeyDown(Keys.Escape) && pauseDelay <= 0 && paused)
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape) && !prevKeyState.IsKeyDown(Keys.Escape) && pauseDelay <= 0 && consoleOpen)
             {
 
                 InputManager.inputActive = true;
                 gameSpeed = 1;
-                paused = false;
+                consoleOpen = false;
                 command = "";
                 pauseDelay = 0.3f;
 
@@ -150,7 +170,7 @@ namespace Apollo
                 _graphics.ToggleFullScreen();
             }
 
-            if (!paused)
+            if (!consoleOpen)
             {
 
                 prevKeyState = Keyboard.GetState();
@@ -188,7 +208,7 @@ namespace Apollo
         private void Window_TextInput(object sender, TextInputEventArgs e)
         {
 
-            if (paused)
+            if (consoleOpen)
             {
 
                 if (!char.IsControl(e.Character))
@@ -206,7 +226,7 @@ namespace Apollo
 
                     InputManager.inputActive = true;
                     gameSpeed = 1;
-                    paused = false;
+                    consoleOpen = false;
                     pauseDelay = 0.3f;
                     RunCommand();
                     command = "";
@@ -232,7 +252,15 @@ namespace Apollo
 
         protected override void Draw(GameTime gameTime)
         {
+
+            GLint myLoc = glGetUniformLocation(p, "myVar");
+
+            gbEffect.Parameters["PaletteTexture"].SetValue(colorPalettes);
+            gbEffect.Parameters["PaletteId"].SetValue(0);
+
             GraphicsDevice.Clear(new Color(0,0.02f,0.07f));
+
+            GraphicsDevice.SetRenderTarget(_renderTarget);
 
             var transformMatrix = _camera.GetViewMatrix();
 
@@ -240,20 +268,30 @@ namespace Apollo
 
             _spriteBatch.Begin(samplerState:SamplerState.PointClamp, sortMode:SpriteSortMode.BackToFront, transformMatrix:transformMatrix);
 
+            _spriteBatch.DrawRectangle(new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), new Color(0, 0.02f, 0.07f));
+
             Render();
 
             _spriteBatch.End();
 
             _shapeBatch.End();
 
+            GraphicsDevice.SetRenderTarget(null);
+
+            _spriteBatch.Begin(SpriteSortMode.Immediate, effect: gbEffect);
+
+            _spriteBatch.Draw(_renderTarget, new Rectangle(0,0,GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
+
+            _spriteBatch.End();
+
             _shapeBatch.Begin();
 
             _spriteBatch.Begin();
 
-            if (paused)
+            if (consoleOpen)
             {
-                _shapeBatch.FillRectangle(Vector2.Zero, new Vector2(_graphics.GraphicsDevice.Viewport.Width, _graphics.GraphicsDevice.Viewport.Height), new Color(0, 0, 0, 0.5f));
-                _shapeBatch.FillRectangle(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2((_graphics.GraphicsDevice.Viewport.Width / 3) * 2, 20), new Color(0, 0, 0, 0.5f));
+                _spriteBatch.FillRectangle(Vector2.Zero, new Vector2(_graphics.GraphicsDevice.Viewport.Width, _graphics.GraphicsDevice.Viewport.Height), new Color(0, 0, 0, 0.5f));
+                _spriteBatch.FillRectangle(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2((_graphics.GraphicsDevice.Viewport.Width / 3) * 2, 20), new Color(0, 0, 0, 0.5f));
 
                 Vector2 middleText = lucidaConsole.MeasureString(command) / 2;
 
@@ -276,19 +314,36 @@ namespace Apollo
             switch (commandSplit[0].ToLower())
             {
 
+                case "":
+                    break;
+
                 case "end":
                     Exit();
+                    break;
+                case "tp":
+                    if (commandSplit.Length == 3 && float.TryParse(commandSplit[1], out float xValue) && float.TryParse(commandSplit[2], out float yValue))
+                    {
+                        player.transform.position = new Vector2(xValue, yValue);
+                    } else
+                    {
+                        Debug.WriteLine("Invalid Parameter! Do you know how to use this command?");
+                    }
                     break;
                 case "zoom":
                     if (commandSplit.Length == 2)
                     {
-                        if (float.TryParse(commandSplit[1], out float newZoom) && newZoom > 0)
+                        if (float.TryParse(commandSplit[1], out float newZoom))
                         {
-
-                            _camera.Zoom = newZoom;
+                            if (newZoom > 0)
+                            {
+                                _camera.Zoom = newZoom;
+                            } else
+                            {
+                                Debug.WriteLine("Can't zoom negative or zero number!");
+                            }
 
                         }
-                        else if (newZoom > 0)
+                        else
                         {
                             Debug.WriteLine("Invalid Parameter! Do you know how to use this command?");
                         }
@@ -319,7 +374,6 @@ namespace Apollo
 
                     case RenderType.Square:
                         _shapeBatch.FillRectangle(obj.transform.position, obj.transform.scale, obj.color);
-                        _shapeBatch.BorderRectangle(obj.transform.position, obj.transform.scale, obj.outlineColor, obj.borderThickness);
                         break;
 
                     default:
