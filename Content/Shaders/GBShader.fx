@@ -11,11 +11,18 @@ Texture2D SpriteTexture;
 
 Texture2D PaletteTexture;
 
-int PaletteId;
+int PaletteId = 0;
 
 sampler2D SpriteTextureSampler = sampler_state
 {
 	Texture = <SpriteTexture>;
+
+};
+
+sampler2D PaletteTextureSampler = sampler_state
+{
+	Texture = <PaletteTexture>;
+
 };
 
 struct VertexShaderOutput
@@ -32,16 +39,36 @@ float4 MainPS(VertexShaderOutput input) : COLOR
 	float4 color = baseColor;
 	color.rgb = max(max(color.r, color.g), color.b);
 
+	int palId = PaletteId;
+
+	Texture2D palTex = PaletteTexture;
+
 	if (color.r == 0) {
 
-		return tex2D(paletteTexture, float2(0.5f, 0.5f + paletteId))
+
+		return tex2D(PaletteTextureSampler, float2(0.1f,0.1f + 0.2f * palId) );
+
+	}
+	else if (color.r <= 0.25f) {
+
+		return tex2D(PaletteTextureSampler, float2(0.3f, 0.1f + 0.2f * palId));
+
+	}
+	else if (color.r <= 0.5f) {
+
+		return tex2D(PaletteTextureSampler, float2(0.5f, 0.1f + 0.2f * palId));
+
+	}
+	else if (color.r <= 0.75f) {
+
+		return tex2D(PaletteTextureSampler, float2(0.7f, 0.1f + 0.2f * palId));
 
 	}
 	else {
-		return color;
+
+		return tex2D(PaletteTextureSampler, float2(0.9f, 0.1f + 0.2f * palId));
+
 	}
-	
-	return color;
 
 }
 

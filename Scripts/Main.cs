@@ -87,11 +87,11 @@ namespace Apollo
 
             gameObjects.Add(new GameObject(new Transform(new Vector2((_graphics.GraphicsDevice.Viewport.Width / 3) * 2, _graphics.GraphicsDevice.Viewport.Height / 2), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.White, Color.Transparent));
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, _graphics.GraphicsDevice.Viewport.Height / 4), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, Color.Black, Color.Transparent));
+            gameObjects.Add(new GameObject(new Transform(new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, _graphics.GraphicsDevice.Viewport.Height / 4), new Vector2(_graphics.GraphicsDevice.Viewport.Width / 3, 30), 0), RenderType.Square, new Color(0.5f,0.5f,0.5f,1), Color.Transparent));
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2(_graphics.GraphicsDevice.Viewport.Width, 100), 0), RenderType.Square, Color.White, Color.White));
+            gameObjects.Add(new GameObject(new Transform(new Vector2(0, _graphics.GraphicsDevice.Viewport.Height - 100), new Vector2(_graphics.GraphicsDevice.Viewport.Width, 100), 0), RenderType.Square, new Color(0.75f, 0.75f, 0.75f, 1), Color.White));
 
-            gameObjects.Add(new GameObject(new Transform(new Vector2(0, 0), new Vector2(50, _graphics.GraphicsDevice.Viewport.Height - 100), 0), RenderType.Square, Color.White, Color.White));
+            gameObjects.Add(new GameObject(new Transform(new Vector2(0, 0), new Vector2(50, _graphics.GraphicsDevice.Viewport.Height - 100), 0), RenderType.Square, new Color(0.25f, 0.25f, 0.25f, 1), Color.White));
 
             gameObjects.Add(new Player(new Transform(new Vector2(100, 0), new Vector2(30, 60), 0), RenderType.Square, Color.White, Color.Transparent));
 
@@ -122,11 +122,9 @@ namespace Apollo
 
             lucidaConsole = Content.Load<SpriteFont>("Fonts/lucidaConsole");
 
-            gbEffect = Content.Load<Effect>("Shaders/GBShader");
-            gbEffect.Parameters["PaletteTexture"].SetValue(colorPalettes);
-            gbEffect.Parameters["PaletteId"].SetValue(0);
-
             colorPalettes = Content.Load<Texture2D>("Sprites/ColorPalettes");
+
+            gbEffect = Content.Load<Effect>("Shaders/GBShader"); 
 
         }
 
@@ -255,9 +253,6 @@ namespace Apollo
         protected override void Draw(GameTime gameTime)
         {
 
-            gbEffect.Parameters["PaletteTexture"].SetValue(colorPalettes);
-            gbEffect.Parameters["PaletteId"].SetValue(0);
-
             GraphicsDevice.Clear(new Color(0,0.02f,0.07f));
 
             GraphicsDevice.SetRenderTarget(_renderTarget);
@@ -268,17 +263,25 @@ namespace Apollo
 
             _spriteBatch.Begin(samplerState:SamplerState.PointClamp, sortMode:SpriteSortMode.BackToFront, transformMatrix:transformMatrix);
 
-            _spriteBatch.DrawRectangle(new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), new Color(0, 0.02f, 0.07f));
-
             Render();
 
             _spriteBatch.End();
 
             _shapeBatch.End();
 
+            _spriteBatch.Begin();
+
+            _spriteBatch.DrawRectangle(new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), new Color(0, 0.02f, 0.07f));
+
+            _spriteBatch.End();
+
             GraphicsDevice.SetRenderTarget(null);
 
             _spriteBatch.Begin(SpriteSortMode.Immediate, effect: gbEffect);
+
+            gbEffect.Parameters["PaletteId"].SetValue(paletteId);
+
+            gbEffect.Parameters["PaletteTexture"].SetValue(colorPalettes);
 
             _spriteBatch.Draw(_renderTarget, new Rectangle(0,0,GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
 
@@ -353,6 +356,38 @@ namespace Apollo
                         Debug.WriteLine("Invalid Parameter! Do you know how to use this command?");
 
                     }
+                    break;
+
+                case "palette":
+
+                    if (commandSplit.Length == 2)
+                    {
+                        if(int.TryParse(commandSplit[1], out int newPalette))
+                        {
+
+                            if(newPalette >= 0 && newPalette <= 4)
+                            {
+
+                                paletteId = newPalette;
+
+                            } else
+                            {
+
+                                Debug.WriteLine("Invalid Palette ID! What are you doing?");
+
+                            }
+
+                        } else
+                        {
+
+                            Debug.WriteLine("Invalid Parameter! Do you know how to use this command?");
+
+                        }
+                    } else
+                    {
+                        Debug.WriteLine("Invalid Parameter! Do you know how to use this command?");
+                    }
+
                     break;
 
                 default:
