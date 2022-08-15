@@ -40,6 +40,8 @@ namespace Apollo
 
         // Graphics
 
+        private int brightness;
+
         private RenderTarget2D _renderTarget;
 
         private SpriteFont lucidaConsole;
@@ -73,6 +75,8 @@ namespace Apollo
             tileMap = new TileMap(100, 100, 60);
 
             paletteId = 0;
+
+            brightness = 0;
 
             command = "";
 
@@ -310,6 +314,8 @@ namespace Apollo
 
             gbEffect.Parameters["PaletteTexture"].SetValue(colorPalettes);
 
+            gbEffect.Parameters["brightness"].SetValue((float)brightness / 5);
+
             gbEffect.Parameters["paletteHeight"].SetValue(colorPalettes.Height);
 
             _spriteBatch.Draw(_renderTarget, new Rectangle(0,0,GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
@@ -429,6 +435,41 @@ namespace Apollo
 
                         }
                     } else
+                    {
+                        Debug.WriteLine("Invalid Parameter! Do you know how to use this command?");
+                    }
+
+                    break;
+
+                case "brightness":
+
+                    if (commandSplit.Length == 2)
+                    {
+                        if (int.TryParse(commandSplit[1], out int newBrightness))
+                        {
+
+                            if (newBrightness >= -4 && newBrightness <= 4)
+                            {
+
+                                brightness = newBrightness;
+
+                            }
+                            else
+                            {
+
+                                Debug.WriteLine("Invalid Brightness! What are you doing?");
+
+                            }
+
+                        }
+                        else
+                        {
+
+                            Debug.WriteLine("Invalid Parameter! Do you know how to use this command?");
+
+                        }
+                    }
+                    else
                     {
                         Debug.WriteLine("Invalid Parameter! Do you know how to use this command?");
                     }

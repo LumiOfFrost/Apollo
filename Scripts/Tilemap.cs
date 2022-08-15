@@ -48,7 +48,7 @@ namespace Apollo.Scripts
             if (this.IsInRange(position))
             {
 
-                tiles[(int)position.Y, (int)position.Y] = new Tile(solid, tile, tileSet, this, new Vector2((int)position.Y, (int)position.Y));
+                tiles[(int)position.X, (int)position.Y] = new Tile(solid, tile, tileSet, this, new Vector2((int)position.X, (int)position.Y));
 
                 foreach (Tile t in tiles)
                 {
@@ -85,17 +85,7 @@ namespace Apollo.Scripts
        public bool IsInRange(Vector2 position)
         {
 
-            if (position.X >= 0 && position.X < width && position.Y >= 0 && position.Y < height)
-            {
-
-                return true;
-
-            } else
-            {
-
-                return false;
-
-            }
+            return (position.X >= 0 && position.X < width) && (position.Y >= 0 && position.Y < height);
 
         }
 
@@ -174,17 +164,30 @@ namespace Apollo.Scripts
         public Vector2 UvPos()
         {
 
-            if (!nearbyContacts[0] && !nearbyContacts[1] && !nearbyContacts[2] && !nearbyContacts[3] && nearbyContacts[4] && !nearbyContacts[5] && nearbyContacts[6] && nearbyContacts[7])
+            if (
+                !nearbyContacts[1] && !nearbyContacts[3] && nearbyContacts[4] && nearbyContacts[6] && nearbyContacts[7]
+                )
             {
 
                 return new Vector2(0, 0);
 
-            } else if (!nearbyContacts[0] && !nearbyContacts[1] && !nearbyContacts[2] && nearbyContacts[3] && nearbyContacts[4] && nearbyContacts[5] && nearbyContacts[6] && nearbyContacts[7])
+            } else if (
+                !nearbyContacts[1] && nearbyContacts[3] && nearbyContacts[4] && nearbyContacts[5] && nearbyContacts[6] && nearbyContacts[7]
+                )
             {
 
                 return new Vector2(16, 0);
 
-            } else
+            }
+            else if (
+              !nearbyContacts[0] && !nearbyContacts[1] && !nearbyContacts[2] && nearbyContacts[3] && !nearbyContacts[4] && nearbyContacts[5] && nearbyContacts[6] && !nearbyContacts[7]
+              )
+            {
+
+                return new Vector2(32, 0);
+
+            }
+            else
             {
                 return new Vector2(0, 48);
             }
