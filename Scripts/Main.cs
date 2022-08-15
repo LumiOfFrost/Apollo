@@ -17,7 +17,6 @@ namespace Apollo
         public GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private KeyboardState prevKeyState;
-        private ShapeBatch _shapeBatch;
 
         private Vector2 cameraOffset;
         private Vector2 defaultOffset;
@@ -37,6 +36,8 @@ namespace Apollo
 
         Player player;
 
+        private TileMap tileMap;
+
         // Graphics
 
         private RenderTarget2D _renderTarget;
@@ -53,9 +54,11 @@ namespace Apollo
 
         private Effect gbEffect;
 
-        private int paletteId;
+        public static int paletteId;
 
         private Texture2D colorPalettes;
+
+        private Texture2D test;
 
         public Main()
         {
@@ -66,6 +69,8 @@ namespace Apollo
 
         protected override void Initialize()
         {
+
+            tileMap = new TileMap(100, 100, 60);
 
             paletteId = 0;
 
@@ -118,13 +123,12 @@ namespace Apollo
             
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            _shapeBatch = new ShapeBatch(GraphicsDevice, Content);
-
             lucidaConsole = Content.Load<SpriteFont>("Fonts/lucidaConsole");
 
             colorPalettes = Content.Load<Texture2D>("Sprites/ColorPalettes");
 
-            gbEffect = Content.Load<Effect>("Shaders/GBShader"); 
+            gbEffect = Content.Load<Effect>("Shaders/GBShader");
+            test = Content.Load<Texture2D>("Sprites/BrickGroundTileset");
 
         }
 
@@ -191,6 +195,20 @@ namespace Apollo
 
                 gameObjectsToDestroy.Clear();
 
+                Vector2 mousePos = Vector2.Transform(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y), _camera.GetInverseViewMatrix());
+
+                if (Mouse.GetState().LeftButton == ButtonState.Pressed)
+                {
+
+                    if (tileMap.IsInRange(tileMap.GlobalToGrid(mousePos)))
+                    {
+
+                        tileMap.AddTile(new Vector2((float)Math.Floor(mousePos.X / tileMap.gridSize), (float)Math.Floor(mousePos.Y / tileMap.gridSize)), true, Tiles.Ground, test);
+
+                    }
+
+                }
+
             } else
             {
 
@@ -253,17 +271,34 @@ namespace Apollo
 
             GraphicsDevice.SetRenderTarget(_renderTarget);
 
+            var transformMatrix = _camera.GetViewMatrix();
+
             _spriteBatch.Begin();
 
-            _spriteBatch.FillRectangle(new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White, layerDepth: 0f);
+            _spriteBatch.FillRectangle(new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White, layerDepth: 1f);
 
             _spriteBatch.End();
-
-            var transformMatrix = _camera.GetViewMatrix();
 
             _spriteBatch.Begin(samplerState:SamplerState.PointClamp, sortMode:SpriteSortMode.BackToFront, transformMatrix:transformMatrix);
 
             Render();
+
+            for (int i = 0; i < tileMap.width - 1; i++)
+            {
+
+                for (int j = 0; j < tileMap.height - 1; j++)
+                {
+
+                    if (tileMap.tiles[i,j] != null)
+                    {
+
+                        DrawTile(tileMap.tiles[i, j], tileMap);
+
+                    }
+
+                }
+
+            }
 
             _spriteBatch.End();
 
@@ -297,6 +332,26 @@ namespace Apollo
             _spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        private void DrawTile(Tile tile, TileMap tMap)
+        {
+
+            _spriteBatch.Draw(
+                tile.tileSet,
+                new Rectangle(
+                    (int)tMap.GridToGlobal(new Vector2(tile.x, tile.y)).X,
+                    (int)tMap.GridToGlobal(new Vector2(tile.x, tile.y)).Y,
+                    tMap.gridSize, tMap.gridSize),
+                new Rectangle(
+                    new Point((int)tile.UvPos().X, (int)tile.UvPos().Y),
+                    new Point(16, 16)),
+                Color.White,
+                0,
+                Vector2.Zero,
+                SpriteEffects.None,
+                0f);
+
         }
 
         private void RunCommand()
@@ -398,7 +453,7 @@ namespace Apollo
                 {
 
                     case RenderType.Square:
-                        _spriteBatch.FillRectangle(obj.transform.position, obj.transform.scale, obj.color);
+                        _spriteBatch.FillRectangle(obj.transform.position, obj.transform.scale, obj.color, 0.8f);
                         break;
 
                     default:
