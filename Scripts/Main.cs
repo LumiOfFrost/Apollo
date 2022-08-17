@@ -212,6 +212,17 @@ namespace Apollo
                     }
 
                 }
+                if (Mouse.GetState().RightButton == ButtonState.Pressed)
+                {
+
+                    if (tileMap.IsInRange(tileMap.GlobalToGrid(mousePos)))
+                    {
+
+                        tileMap.RemoveTile(new Vector2((float)Math.Floor(mousePos.X / tileMap.gridSize), (float)Math.Floor(mousePos.Y / tileMap.gridSize)));
+
+                    }
+
+                }
 
             } else
             {
